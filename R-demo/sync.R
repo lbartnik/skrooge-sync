@@ -2,9 +2,12 @@ library(plyr)
 library(dplyr)
 library(lubridate)
 
-existingDataFile <- 'skrooge.csv'
-newDataFile      <- 'all-bank.csv'
-
+if (FALSE) {
+  existingDataFile <- 'skrooge.csv'
+  newDataFile      <- 'all-bank.csv'
+  accountName      <- 'Lukasz Checking'
+  classifiedData   <- processData(accountName, existingDataFile, newDataFile)
+}
 
 # outstanding questions:
 #
@@ -44,6 +47,7 @@ classify <- function (accountName, existingData, newData)
   overlap <-
     X[!vapply(X, is.null, logical(1))] %>%
     ldply(function(x) as.data.frame(x, stringsAsFactors = FALSE)) %>%
+    select(-.id) %>%
     tbl_df
   
   # limit notSeen given the threshold date; this is required because
@@ -58,17 +62,32 @@ classify <- function (accountName, existingData, newData)
   # most similar "old" transactions and out of them choose the most
   # frequest category and payee
   
-  classified <- adply(notSeen, 1, function (toClassify) {
-    categories <-
-      overlap %>%
-      mutate(adist = as.vector(adist(toClassify$comment, comment))) %>%
-      group_by(category) %>%
-      summarize(adist = mean(adist), n = n()) %>%
-      arrange(adist, desc(n))
-    
-    toClassify$guessedCat <- categories$category[1]
-    toClassify
-  }, .expand = FALSE)
+  classified <-
+    adply(notSeen, 1, function (toClassify) {
+      withDistance <-
+        overlap %>%
+        mutate(
+          adist = as.vector(adist(toClassify$comment, comment)),
+          ddist = abs(amount - toClassify$amount))
+      
+      categories <-
+        withDistance %>%
+        group_by(category) %>%
+        summarize(adist = mean(adist), ddist = mean(ddist), n = n()) %>%
+        arrange(adist, desc(n))
+      
+      payees <-
+        withDistance %>%
+        filter(nchar(payee) > 0) %>%
+        group_by(payee) %>%
+        summarize(adist = mean(adist), ddist = mean(ddist), n = n()) %>%
+        arrange(adist, desc(n))
+      
+      toClassify$category <- categories$category[1]
+      toClassify$payee    <- payees$payee[1]
+      toClassify
+    }, .expand = FALSE) %>%
+    select(-X1)
   
   classified
 }
@@ -95,5 +114,7 @@ processData <- function (accountName, existingDataFile, newDataFile)
   
   classifiedData <- classify(accountName, existingData, newData)
   
-  write.csv2(classifiedData, paste0('new-', accountName, '.csv'))
+  write.csv2(classifiedData, paste0('new-', accountName, '.csv'), row.names = FALSE)
+
+  invisible(classifiedData)
 }
