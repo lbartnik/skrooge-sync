@@ -4,9 +4,14 @@ library(lubridate)
 
 if (FALSE) {
   existingDataFile <- 'skrooge.csv'
-  newDataFile      <- 'all-bank.csv'
+  
   accountName      <- 'Lukasz Checking'
+  classifiedData   <- processData(accountName, existingDataFile, paste0(accountName, '.csv'))
+
+  accountName      <- 'Lukasz Credit Card'
+  newDataFile      <- paste0(accountName, '.csv')
   classifiedData   <- processData(accountName, existingDataFile, newDataFile)
+  
 }
 
 # outstanding questions:
@@ -19,7 +24,46 @@ if (FALSE) {
 
 
 
-classify <- function (accountName, existingData, newData)
+classify <- function (overlap, notSeen)
+{
+  # now try and assign "category" and "payee" to these new operations;
+  # in order to do so, look at the `overlap` set and find the set of
+  # most similar "old" transactions and out of them choose the most
+  # frequest category and payee
+  
+  classified <-
+    adply(notSeen, 1, function (toClassify) {
+      withDistance <-
+        overlap %>%
+        mutate(
+          adist = as.vector(adist(toClassify$comment, comment)),
+          ddist = abs(amount - toClassify$amount)) %>%
+        mutate(adist = 1/(1 + adist))
+
+      categories <-
+        withDistance %>%
+        group_by(category) %>%
+        summarize(adist = sum(adist ** 2), n = n()) %>%
+        arrange(desc(adist), desc(n))
+      
+      payees <-
+        withDistance %>%
+        filter(nchar(payee) > 0) %>%
+        group_by(payee) %>%
+        summarize(adist = sum(adist ** 2), n = n()) %>%
+        arrange(desc(adist), desc(n))
+      
+      toClassify$category <- categories$category[1]
+      toClassify$payee    <- payees$payee[1]
+      toClassify
+    }, .expand = FALSE) %>%
+    select(-X1)
+  
+  classified
+}
+
+
+splitNewData <- function (existingData, newData)
 {
   # here we will store those that do not overlap; these are candidates
   # for new operations
@@ -50,46 +94,7 @@ classify <- function (accountName, existingData, newData)
     select(-.id) %>%
     tbl_df
   
-  # limit notSeen given the threshold date; this is required because
-  # split transactions cannot be matched and thus will produce a lot
-  # of false positives
-  
-  onlyNewer <- ymd('2016-10-01')
-  notSeen <- filter(notSeen, date > onlyNewer)
-  
-  # now try and assign "category" and "payee" to these new operations;
-  # in order to do so, look at the `overlap` set and find the set of
-  # most similar "old" transactions and out of them choose the most
-  # frequest category and payee
-  
-  classified <-
-    adply(notSeen, 1, function (toClassify) {
-      withDistance <-
-        overlap %>%
-        mutate(
-          adist = as.vector(adist(toClassify$comment, comment)),
-          ddist = abs(amount - toClassify$amount))
-      
-      categories <-
-        withDistance %>%
-        group_by(category) %>%
-        summarize(adist = mean(adist), ddist = mean(ddist), n = n()) %>%
-        arrange(adist, desc(n))
-      
-      payees <-
-        withDistance %>%
-        filter(nchar(payee) > 0) %>%
-        group_by(payee) %>%
-        summarize(adist = mean(adist), ddist = mean(ddist), n = n()) %>%
-        arrange(adist, desc(n))
-      
-      toClassify$category <- categories$category[1]
-      toClassify$payee    <- payees$payee[1]
-      toClassify
-    }, .expand = FALSE) %>%
-    select(-X1)
-  
-  classified
+  list(overlap = overlap, notSeen = notSeen)
 }
 
 
@@ -112,7 +117,15 @@ processData <- function (accountName, existingDataFile, newDataFile)
     mutate(date = mdy(date)) %>%
     arrange(date, amount)
   
-  classifiedData <- classify(accountName, existingData, newData)
+  split <- splitNewData(existingData, newData)
+  
+  # limit notSeen given the threshold date; this is required because
+  # split transactions cannot be matched and thus will produce a lot
+  # of false positives
+  newerThan <- ymd('2016-10-01')
+  notSeen   <- filter(split$notSeen, date > newerThan)
+  
+  classifiedData <- classify(split$overlap, notSeen)
   
   write.csv2(classifiedData, paste0('new-', accountName, '.csv'), row.names = FALSE)
 
