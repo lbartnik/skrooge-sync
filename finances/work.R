@@ -6,15 +6,18 @@ library(magrittr)
 
 
 if (FALSE) {
+  bofa <- "currentTransaction_1760.csv"
+  bofa <- "May2017_1760.csv"
+  bofa <- "all.csv"
+
   skrooge_transactions <-
     readr::read_delim("skrooge.csv", ";", col_types = cols(date = col_character())) %>%
     filter(date != '0000-00-00') %>%
     mutate(date = as_date(date))
 
-
   new_transactions <-
-    readr::read_csv("currentTransaction_1760.csv",
-                    col_types = cols(`Reference Number` = col_character())) %>%
+    bofa %>%
+    readr::read_csv(col_types = cols(`Reference Number` = col_character())) %>%
     rename(date = `Posted Date`,
            reference = `Reference Number`,
            payee = `Payee`,
@@ -23,6 +26,9 @@ if (FALSE) {
     mutate(date = mdy(date),
            comment = payee) %>%
     select(-reference, -address)
+
+  classified <- classify(skrooge_transactions, new_transactions)
+  write_csv(classified, "bofa.csv")
 }
 
 
@@ -50,11 +56,12 @@ classify <- function (skrooge, candidates)
       with_distance <-
         known %>%
         mutate(dist = as.vector(adist(new$comment, comment)),
-               dist = 1/(1 + dist))
+               dist = 1/(1 + dist)) %>%
+        filter(!is.na(dist))
 
       # there needs to be at least one existing transaction we can
       # relate to
-      if (all(is.na(with_distance$dist))) {
+      if (!nrow(with_distance)) {
         new$category <- NA_character_
         new$payee    <- NA_character_
         return(new)
