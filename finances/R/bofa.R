@@ -12,29 +12,6 @@ bofa <- function (new, skrooge)
 
 
 #' @export
-#' @importFrom readr read_delim cols col_character
-#' @importFrom lubridate as_date
-read_skrooge <- function (path = "skrooge.csv")
-{
-  transactions <-
-    readr::read_delim(path, ";", col_types = cols(date = col_character()))
-
-  # make sure this is the right data set
-  expected <- c('date', 'account', 'payee', 'amount', 'category')
-  i <- expected %in% names(transactions)
-  if (!all(i)) {
-    stop("columns missing in the Skrooge data (", path, "): ",
-         paste(expected[!i], collapse = ", "), call. = FALSE)
-  }
-
-  # 0000-00-00 - these are initial account states
-  transactions %>%
-    filter(date != '0000-00-00') %>%
-    mutate(date = as_date(date))
-}
-
-
-#' @export
 #' @importFrom readr read_csv
 #' @importFrom dplyr rename mutate select
 #' @importFrom lubridate mdy
