@@ -1,13 +1,18 @@
 
 #' @export
-bofa <- function (new, skrooge)
+#' @importFrom magrittr %<>%
+bofa <- function (new, skrooge, output_path = "BankOfAmerica.csv", after_date = today())
 {
-  new <- read_bofa(new)
-  skrooge <- read_skrooge(skrooge)
+  skrooge %<>% read_skrooge
+
+  new %<>%
+    read_bofa %>%
+    filter(date >= after_date)
 
   classified <- classify_bofa(new, skrooge)
+  readr::write_csv(classified, output_path)
 
-  classified
+  message("Classified transactions written to: ", normalizePath(output_path))
 }
 
 
