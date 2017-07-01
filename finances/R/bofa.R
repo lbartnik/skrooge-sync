@@ -5,17 +5,30 @@ bofa <- function (new, skrooge)
   new <- read_bofa(new)
   skrooge <- read_skrooge(skrooge)
 
-  classified <- classify(new, skrooge)
+  classified <- classify_bofa(new, skrooge)
+
+  classified
 }
 
 
 #' @export
-#' @importFrom readr read_delim
+#' @importFrom readr read_delim cols col_character
+#' @importFrom lubridate as_date
 read_skrooge <- function (path = "skrooge.csv")
 {
+  transactions <-
+    readr::read_delim(path, ";", col_types = cols(date = col_character()))
+
+  # make sure this is the right data set
+  expected <- c('date', 'account', 'payee', 'amount', 'category')
+  i <- expected %in% names(transactions)
+  if (!all(i)) {
+    stop("columns missing in the Skrooge data (", path, "): ",
+         paste(expected[!i], collapse = ", "), call. = FALSE)
+  }
+
   # 0000-00-00 - these are initial account states
-  skrooge_transactions <-
-    readr::read_delim(path, ";", col_types = cols(date = col_character())) %>%
+  transactions %>%
     filter(date != '0000-00-00') %>%
     mutate(date = as_date(date))
 }
@@ -42,7 +55,7 @@ read_bofa <- function (path)
 
 
 #' @importFrom dplyr anti_join setdiff select left_join mutate filter group_by summarize arrange
-#' @importFrom magrittr extract2
+#' @importFrom magrittr extract2 %>%
 #' @importFrom plyr adply
 #'
 classify_bofa <- function (candidates, skrooge)
