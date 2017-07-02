@@ -3,8 +3,10 @@ library(dplyr)
 library(lubridate)
 
 if (FALSE) {
+  setwd('work')
+
   existingDataFile <- 'skrooge.csv'
-  newerThan <- ymd('2017-05-11')
+  newerThan <- ymd('2017-06-11')
 
   accountName      <- 'Lukasz Checking'
   classifiedData   <- processData(accountName, existingDataFile, paste0(accountName, '.csv'), newerThan)
