@@ -1,14 +1,14 @@
 
 #' @export
 #' @importFrom magrittr %<>%
-bofa <- function (new, skrooge, output_path = "BankOfAmerica.csv", after_date = today())
+bofa_credit <- function (new, skrooge, output_path = "BankOfAmerica.csv", after_date = today())
 {
-  skrooge_data <- read_skrooge(skrooge)
-  new_data <-
-    read_bofa(new) %>%
+  skrooge <- read_skrooge(skrooge)
+  candidates <-
+    bofa_credit_read(new) %>%
     filter(date >= after_date)
 
-  classified <- classify_bofa(new_data, skrooge_data)
+  classified <- classify_bofa(candidates, skrooge)
   readr::write_csv(classified, output_path)
 
   message("Classified transactions written to: ", normalizePath(output_path))
@@ -22,7 +22,7 @@ bofa <- function (new, skrooge, output_path = "BankOfAmerica.csv", after_date = 
 #' @importFrom dplyr rename mutate select
 #' @importFrom lubridate mdy
 #'
-read_bofa <- function (path)
+bofa_credit_read <- function (path)
 {
   path %>%
     readr::read_csv(col_types = cols(`Reference Number` = col_character())) %>%
@@ -83,7 +83,7 @@ classify_bofa <- function (candidates, skrooge)
     new$category <-
       with_distance %>%
       group_by(category) %>%
-      summarize(dist = sum(dist ** 2), n = n()) %>%
+      summarize(dist = sqrt(mean(sum(dist ** 2))), n = n()) %>%
       arrange(desc(dist), desc(n)) %>%
       head(1) %>%
       extract2("category")
@@ -92,7 +92,7 @@ classify_bofa <- function (candidates, skrooge)
       with_distance %>%
       filter(nchar(payee) > 0) %>%
       group_by(payee) %>%
-      summarize(dist = sum(dist ** 2), n = n()) %>%
+      summarize(dist = sqrt(mean(sum(dist ** 2))), n = n()) %>%
       arrange(desc(dist), desc(n)) %>%
       head(1) %>%
       extract2("payee")
