@@ -33,7 +33,7 @@ read_skrooge <- function (path = "skrooge.csv")
     readr::read_delim(path, ";", col_types = cols(date = col_character()))
 
   # make sure this is the right data set
-  expected <- c('date', 'account', 'payee', 'amount', 'category')
+  expected <- c('date', 'account', 'payee', 'amount', 'category', 'comment')
   i <- expected %in% names(transactions)
   if (!all(i)) {
     stop("columns missing in the Skrooge data (", path, "): ",
@@ -43,5 +43,6 @@ read_skrooge <- function (path = "skrooge.csv")
   # 0000-00-00 - these are initial account states
   transactions %>%
     filter(date != '0000-00-00') %>%
-    mutate(date = as_date(date))
+    mutate(date = as_date(date)) %>%
+    select(date, amount, payee, category, comment)
 }

@@ -13,5 +13,6 @@ Import:
   lubridate,
   magrittr,
   plyr,
-  readr
+  readr,
+  tools
 RoxygenNote: 6.0.1
