@@ -14,10 +14,10 @@ if (FALSE) {
 }
 
 if (FALSE) {
-  new <- "work/April2017_7333.csv"
+  new <- "work/February2017_7333.csv"
   skrooge <- '~/Dropbox/Budget/budget.skg'
-  output_path <- 'work/BankOfAmerica.csv'
-  after_date <- '2017-03-01'
+  output_path <- 'work/Diana, BoA 7333.csv'
+  after_date <- '2017-01-01'
   classified <- bofa_credit(new, skrooge, output_path, after_date)
 }
 

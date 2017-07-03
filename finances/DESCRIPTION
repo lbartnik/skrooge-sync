@@ -14,5 +14,7 @@ Import:
   magrittr,
   plyr,
   readr,
+  stringdist,
+  stringr,
   tools
 RoxygenNote: 6.0.1
