@@ -33,6 +33,7 @@ classify_bofa <- function (candidates, skrooge)
 }
 
 
+#' @importFrom stringr str_replace_all
 strip_comment <- function (comment)
 {
   comment %>%

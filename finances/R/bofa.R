@@ -9,8 +9,14 @@ bofa_credit <- function (new, skrooge, output_path = "BankOfAmerica.csv", after_
     filter(date >= after_date)
 
   classified <- classify_bofa(candidates, skrooge)
+  if (nrow(classified) < 1) {
+    message("No new transactions found.")
+    return()
+  }
+
   readr::write_csv(classified, output_path)
 
+  message("Found ", nrow(classified), " new transaction(s).")
   message("Classified transactions written to: ", normalizePath(output_path))
 
   invisible(classified)
