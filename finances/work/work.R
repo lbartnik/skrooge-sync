@@ -8,16 +8,18 @@ library(finances)
 
 
 if (FALSE) {
-  bofa_file <- "work/bofa_current.csv"
-  skrooge_file <- '~/Documents/budget.skg'
-  classified <- bofa(bofa_file, skrooge_file, after_date = '2017-06-10')
+  new <- "work/8001/stmt.csv"
+  skrooge <- '~/Dropbox/Budget/budget.skg'
+  output_path <- '~/Diana, Sav 8001.csv'
+  after_date <- '2017-05-01'
+  classified <- bofa_credit(new, skrooge, output_path, after_date)
 }
 
 if (FALSE) {
-  new <- "work/February2017_7333.csv"
+  new <- "work/January2017_5431.csv"
   skrooge <- '~/Dropbox/Budget/budget.skg'
-  output_path <- 'work/Diana, BoA 7333.csv'
-  after_date <- '2017-01-01'
+  output_path <- '~/Diana, BoA 5431.csv'
+  after_date <- '2016-10-09'
   classified <- bofa_credit(new, skrooge, output_path, after_date)
 }
 
