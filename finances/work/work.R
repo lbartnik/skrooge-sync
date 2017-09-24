@@ -13,10 +13,18 @@ after_date <- '2017-08-31'
 
 
 if (FALSE) {
-  new <- "work/8001/stmt.csv"
-  output_path <- '~/Diana, Chk 8001.csv'
+  new <- "work/7333//currentTransaction_7333.csv"
+  output_path <- '~/Diana, BoA 7333.csv'
   classified <- bofa_credit(new, skrooge, output_path, after_date)
 }
+
+
+if (FALSE) {
+  new <- "work/8001/stmt.csv"
+  output_path <- '~/Diana, Chk 8001.csv'
+  classified <- bofa_statement(new, skrooge, output_path, after_date)
+}
+
 
 if (FALSE) {
   new <- "work/Lukasz Checking.csv"

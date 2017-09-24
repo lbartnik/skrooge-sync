@@ -2,6 +2,7 @@
 
 export(bofa_credit)
 export(bofa_credit_read)
+export(bofa_statement)
 export(fcu_any)
 export(read_skrooge)
 importFrom(dplyr,"%>%")
