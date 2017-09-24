@@ -2,7 +2,7 @@
 #' @importFrom magrittr extract2 %>%
 #' @importFrom plyr adply
 #'
-classify_bofa <- function (candidates, skrooge)
+classify_candidates <- function (candidates, skrooge)
 {
   new_transactions <-
     anti_join(candidates, skrooge, by = c("date", "amount"))

@@ -1,25 +1,22 @@
 
+#' Classify new transaction for Bank oF America accounts.
+#'
+#' @param new Path to the CSV transaction file.
+#' @param skrooge Path to the Skrooge database file.
+#' @param output_path Path to the output CSV file.
+#' @param after_date Classify only transactions younger than this date.
+#'
 #' @export
 #' @importFrom magrittr %<>%
+#' @importFrom dplyr filter
+#'
 bofa_credit <- function (new, skrooge, output_path = "BankOfAmerica.csv", after_date = today())
 {
-  skrooge <- read_skrooge(skrooge)
   candidates <-
     bofa_credit_read(new) %>%
     filter(date >= after_date)
 
-  classified <- classify_bofa(candidates, skrooge)
-  if (nrow(classified) < 1) {
-    message("No new transactions found.")
-    return()
-  }
-
-  readr::write_csv(classified, output_path)
-
-  message("Found ", nrow(classified), " new transaction(s).")
-  message("Classified transactions written to: ", normalizePath(output_path))
-
-  invisible(classified)
+  process_any(candidates, skrooge, output_path)
 }
 
 

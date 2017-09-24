@@ -4,22 +4,22 @@ library(lubridate)
 library(tools)
 library(readr)
 library(magrittr)
+library(stringr)
+library(stringdist)
 library(finances)
+
+skrooge <- '~/Dropbox/Budget/budget.skg'
+after_date <- '2017-08-31'
 
 
 if (FALSE) {
   new <- "work/8001/stmt.csv"
-  skrooge <- '~/Dropbox/Budget/budget.skg'
-  output_path <- '~/Diana, Sav 8001.csv'
-  after_date <- '2017-05-01'
+  output_path <- '~/Diana, Chk 8001.csv'
   classified <- bofa_credit(new, skrooge, output_path, after_date)
 }
 
 if (FALSE) {
-  new <- "work/January2017_5431.csv"
-  skrooge <- '~/Dropbox/Budget/budget.skg'
-  output_path <- '~/Diana, BoA 5431.csv'
-  after_date <- '2016-10-09'
-  classified <- bofa_credit(new, skrooge, output_path, after_date)
+  new <- "work/Lukasz Checking.csv"
+  output_path <- '~/Lukasz Checking.csv'
+  classified <- fcu_any(new, skrooge, output_path, after_date)
 }
-
